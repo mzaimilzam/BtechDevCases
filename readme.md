@@ -42,6 +42,7 @@ user should be logged out after 15 minutes of inacitvity
 
 ## What to deliver
 
+- Fork this repository and then send the link
 - A runnable project (any structure).
 - README explaining:
 
