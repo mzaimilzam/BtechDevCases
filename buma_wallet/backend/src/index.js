@@ -264,7 +264,7 @@ app.post('/wallet/transfer', verifyToken, async (req, res) => {
         // This represents the offline-first pattern: save locally first
         const transactionId = uuidv4();
         const now = new Date();
-        
+
         const result = await pool.query(
             `INSERT INTO transactions 
              (id, wallet_id, user_id, recipient_email, amount, note, transaction_type, status, created_at, updated_at) 
@@ -312,8 +312,8 @@ app.put('/wallet/transaction/:id/sync', verifyToken, async (req, res) => {
 
         // Only sync pending transactions
         if (transaction.status !== 'pending') {
-            return res.status(400).json({ 
-                message: `Cannot sync ${transaction.status} transaction` 
+            return res.status(400).json({
+                message: `Cannot sync ${transaction.status} transaction`
             });
         }
 
@@ -463,7 +463,7 @@ app.post('/wallet/transaction/:id/cancel', verifyToken, async (req, res) => {
 
         // Only cancel pending transactions
         if (transaction.status !== 'pending') {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 message: `Cannot cancel ${transaction.status} transaction`,
                 currentStatus: transaction.status
             });

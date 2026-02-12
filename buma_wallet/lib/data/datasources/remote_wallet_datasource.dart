@@ -15,12 +15,18 @@ abstract interface class RemoteWalletDataSource {
   /// Fetch wallet balance from server
   Future<Wallet> getWalletBalance();
 
-  /// Transfer funds to another user
+  /// Transfer funds to another user (creates pending transaction)
   Future<Transaction> transferFund({
     required String recipientEmail,
     required double amount,
     required String note,
   });
+
+  /// Sync a pending transaction to the server (execute transfer)
+  Future<Transaction> syncTransaction(String transactionId);
+
+  /// Cancel a pending transaction
+  Future<Transaction> cancelTransaction(String transactionId);
 
   /// Fetch transaction history from server
   Future<List<Transaction>> getTransactionHistory({
@@ -59,6 +65,26 @@ class RemoteWalletDataSourceImpl implements RemoteWalletDataSource {
         note: note,
       );
       final response = await _apiClient.transferFund(request);
+      return response.toDomain();
+    } on DioException catch (e) {
+      throw _handleDioException(e);
+    }
+  }
+
+  @override
+  Future<Transaction> syncTransaction(String transactionId) async {
+    try {
+      final response = await _apiClient.syncTransaction(transactionId);
+      return response.toDomain();
+    } on DioException catch (e) {
+      throw _handleDioException(e);
+    }
+  }
+
+  @override
+  Future<Transaction> cancelTransaction(String transactionId) async {
+    try {
+      final response = await _apiClient.cancelTransaction(transactionId);
       return response.toDomain();
     } on DioException catch (e) {
       throw _handleDioException(e);

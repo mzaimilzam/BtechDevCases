@@ -41,6 +41,15 @@ abstract class ApiClient {
   /// Returns transaction details
   Future<TransactionResponseDto> transferFund(TransferRequestDto request);
 
+  /// Sync a pending transaction to the server (execute transfer)
+  /// PUT /wallet/transaction/:id/sync
+  /// Requires the transaction to be in 'pending' status
+  Future<TransactionResponseDto> syncTransaction(String transactionId);
+
+  /// Cancel a pending transaction
+  /// POST /wallet/transaction/:id/cancel
+  Future<TransactionResponseDto> cancelTransaction(String transactionId);
+
   /// Get transaction history (requires authentication)
   /// GET /wallet/transactions
   /// Query parameters:
@@ -137,6 +146,35 @@ class _ApiClientImpl implements ApiClient {
         data: request.toJson(),
       );
       return TransactionResponseDto.fromJson(response.data!);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<TransactionResponseDto> syncTransaction(String transactionId) async {
+    try {
+      final response = await _dio.put<Map<String, dynamic>>(
+        '${baseUrl ?? ''}/wallet/transaction/$transactionId/sync',
+        data: {},
+      );
+      return TransactionResponseDto.fromJson(
+          response.data!['transaction'] as Map<String, dynamic>);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<TransactionResponseDto> cancelTransaction(
+      String transactionId) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        '${baseUrl ?? ''}/wallet/transaction/$transactionId/cancel',
+        data: {},
+      );
+      return TransactionResponseDto.fromJson(
+          response.data!['transaction'] as Map<String, dynamic>);
     } catch (e) {
       rethrow;
     }

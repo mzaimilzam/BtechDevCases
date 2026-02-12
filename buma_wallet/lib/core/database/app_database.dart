@@ -23,7 +23,8 @@ class AppDatabase extends _$AppDatabase {
           if (from < 2) {
             // Migration from v1 to v2: Add new fields to TransactionsTable
             await m.addColumn(transactionsTable, transactionsTable.syncedAt);
-            await m.addColumn(transactionsTable, transactionsTable.syncErrorMessage);
+            await m.addColumn(
+                transactionsTable, transactionsTable.syncErrorMessage);
           }
         },
       );

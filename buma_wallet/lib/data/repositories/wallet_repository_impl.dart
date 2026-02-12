@@ -187,23 +187,19 @@ class WalletRepositoryImpl implements WalletRepository {
         return const Left(AuthFailure('User not authenticated'));
       }
 
-      // Get transaction from local DB
-      // NOTE: Need to add getTransaction method to LocalWalletDataSource
-      // For now, using the queue method
+      // Verify transaction exists in local DB (validation only)
       final pendingTransactions =
           await _localDataSource.getPendingTransactions(userId);
-      final transaction = pendingTransactions.firstWhere(
-        (t) => t.id == transactionId,
-        orElse: () => throw Exception('Transaction not found'),
-      );
+      final exists = pendingTransactions.any((t) => t.id == transactionId);
+      if (!exists) {
+        return const Left(
+            AuthFailure('Transaction not found in local database'));
+      }
 
-      // Try to sync to API
+      // Try to sync to API using the sync endpoint (not transfer)
       try {
-        final remoteTransaction = await _remoteDataSource.transferFund(
-          recipientEmail: transaction.recipientEmail,
-          amount: transaction.amount,
-          note: transaction.note,
-        );
+        final remoteTransaction =
+            await _remoteDataSource.syncTransaction(transactionId);
 
         // Update local transaction status to success
         await _localDataSource.updateTransactionStatus(
@@ -214,7 +210,8 @@ class WalletRepositoryImpl implements WalletRepository {
 
         return Right(remoteTransaction);
       } catch (e) {
-        // Update with error status
+        // Keep transaction in local DB with failed status for retry
+        // DO NOT delete - allow user to retry
         await _localDataSource.updateTransactionStatus(
           transactionId,
           'failed',
