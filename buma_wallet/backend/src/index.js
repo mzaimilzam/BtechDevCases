@@ -9,6 +9,16 @@ require('dotenv').config();
 const app = express();
 const port = process.env.API_PORT || 8080;
 
+// Validate required environment variables
+const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_EXPIRY = parseInt(process.env.JWT_EXPIRY || '900'); // 15 minutes default
+const REFRESH_TOKEN_EXPIRY = parseInt(process.env.REFRESH_TOKEN_EXPIRY || '604800'); // 7 days default
+
+if (!JWT_SECRET) {
+    console.error('ERROR: JWT_SECRET is not set in environment variables');
+    process.exit(1);
+}
+
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -35,8 +45,9 @@ const verifyToken = (req, res, next) => {
         return res.status(401).json({ message: 'No token provided' });
     }
 
-    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    jwt.verify(token, JWT_SECRET, (err, user) => {
         if (err) {
+            console.error('JWT verification error:', err.message);
             return res.status(403).json({ message: 'Invalid token' });
         }
         req.user = user;
@@ -48,17 +59,17 @@ const verifyToken = (req, res, next) => {
 const generateTokens = (userId, email) => {
     const accessToken = jwt.sign(
         { userId, email },
-        process.env.JWT_SECRET,
-        { expiresIn: process.env.JWT_EXPIRY + 's' }
+        JWT_SECRET,
+        { expiresIn: JWT_EXPIRY }
     );
 
     const refreshToken = jwt.sign(
         { userId, email },
-        process.env.JWT_SECRET,
-        { expiresIn: process.env.REFRESH_TOKEN_EXPIRY + 's' }
+        JWT_SECRET,
+        { expiresIn: REFRESH_TOKEN_EXPIRY }
     );
 
-    return { accessToken, refreshToken, expiresIn: parseInt(process.env.JWT_EXPIRY) };
+    return { accessToken, refreshToken, expiresIn: JWT_EXPIRY };
 };
 
 // ============ AUTH ENDPOINTS ============
@@ -154,7 +165,7 @@ app.post('/auth/refresh', async (req, res) => {
             return res.status(400).json({ message: 'Refresh token is required' });
         }
 
-        jwt.verify(refreshToken, process.env.JWT_SECRET, (err, user) => {
+        jwt.verify(refreshToken, JWT_SECRET, (err, user) => {
             if (err) {
                 return res.status(401).json({ message: 'Invalid or expired refresh token' });
             }
