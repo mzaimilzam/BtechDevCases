@@ -91,6 +91,8 @@ class LocalWalletDataSourceImpl implements LocalWalletDataSource {
         status: _statusToString(transaction.status),
         timestamp: transaction.timestamp,
         createdAt: DateTime.now(),
+        syncedAt: null,
+        syncErrorMessage: null,
       ),
     );
   }

@@ -15,7 +15,18 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+        onUpgrade: (m, from, to) async {
+          if (from < 2) {
+            // Migration from v1 to v2: Add new fields to TransactionsTable
+            await m.addColumn(transactionsTable, transactionsTable.syncedAt);
+            await m.addColumn(transactionsTable, transactionsTable.syncErrorMessage);
+          }
+        },
+      );
 
   // ============ USER CACHE OPERATIONS ============
 
