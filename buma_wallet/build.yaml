@@ -1,0 +1,21 @@
+targets:
+  $default:
+    builders:
+      freezed:
+        generate_for:
+          - lib/**/*.dart
+        options:
+          map_class: true
+      json_serializable:
+        generate_for:
+          - lib/data/models/**/*.dart
+        options:
+          create_factory: true
+          create_json_keys: true
+          create_to_json: true
+      injectable_generator:
+        generate_for:
+          - lib/core/di/**/*.dart
+        options:
+          build_extensions:
+            "{{dir}}{{file}}": ["{{dir}}{{file}}.config.dart"]

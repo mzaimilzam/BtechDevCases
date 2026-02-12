@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  # Backend API Service
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://buma_user:buma_password@db:5432/buma_wallet
+      - JWT_SECRET=your-super-secret-jwt-key-change-in-production
+      - JWT_EXPIRY=900 # 15 minutes in seconds
+      - REFRESH_TOKEN_EXPIRY=604800 # 7 days
+      - API_PORT=8080
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./backend/src:/app/src
+    networks:
+      - buma-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=buma_user
+      - POSTGRES_PASSWORD=buma_password
+      - POSTGRES_DB=buma_wallet
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - buma-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U buma_user -d buma_wallet" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache (Optional, for session/token management)
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - buma-network
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+  redis_data:
+
+
+networks:
+  buma-network:
+    driver: bridge
