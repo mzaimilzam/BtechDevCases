@@ -24,10 +24,14 @@ CREATE TABLE IF NOT EXISTS wallets (
 CREATE TABLE IF NOT EXISTS transactions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   wallet_id UUID NOT NULL REFERENCES wallets(id) ON DELETE CASCADE,
-  recipient_email VARCHAR(255),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  recipient_email VARCHAR(255) NOT NULL,
   amount DECIMAL(15, 2) NOT NULL,
-  transaction_type VARCHAR(50) NOT NULL,
-  status VARCHAR(50) DEFAULT 'pending',
+  note TEXT,
+  transaction_type VARCHAR(50) NOT NULL DEFAULT 'transfer',
+  status VARCHAR(50) NOT NULL DEFAULT 'pending',
+  synced_at TIMESTAMP,
+  sync_error_message TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

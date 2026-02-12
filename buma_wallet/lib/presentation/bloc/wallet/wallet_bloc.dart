@@ -86,7 +86,8 @@ class WalletBloc extends Bloc<WalletEvent, WalletState> {
   ) async {
     emit(const WalletLoading());
 
-    final result = await _walletRepository.cancelTransaction(event.transactionId);
+    final result =
+        await _walletRepository.cancelTransaction(event.transactionId);
 
     result.fold(
       (failure) => emit(TransactionCancelFailure(failure.message)),

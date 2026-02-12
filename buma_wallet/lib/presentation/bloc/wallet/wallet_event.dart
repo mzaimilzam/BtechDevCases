@@ -29,6 +29,7 @@ class GetBalanceRequested extends WalletEvent {
 class GetTransactionsRequested extends WalletEvent {
   const GetTransactionsRequested();
 }
+
 class SyncTransactionRequested extends WalletEvent {
   final String transactionId;
 

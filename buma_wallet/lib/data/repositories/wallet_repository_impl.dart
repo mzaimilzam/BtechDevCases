@@ -176,6 +176,7 @@ class WalletRepositoryImpl implements WalletRepository {
       return Left(UnknownFailure(e.toString()));
     }
   }
+
   @override
   Future<Either<Failure, Transaction>> syncTransaction(
     String transactionId,
@@ -243,8 +244,7 @@ class WalletRepositoryImpl implements WalletRepository {
       }
 
       // Get transaction from local DB
-      final allTransactions =
-          await _localDataSource.getAllTransactions(userId);
+      final allTransactions = await _localDataSource.getAllTransactions(userId);
       final transaction = allTransactions.firstWhere(
         (t) => t.id == transactionId,
         orElse: () => throw Exception('Transaction not found'),

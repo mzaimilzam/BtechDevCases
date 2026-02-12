@@ -221,20 +221,33 @@ Once backend is running, the following endpoints are available:
 ### Authentication
 
 ```
-POST   /api/auth/register          # Register new user
-POST   /api/auth/login             # Login, returns JWT
-GET    /api/auth/me                # Get current user profile
-POST   /api/auth/logout            # Logout
-POST   /api/auth/refresh           # Refresh JWT token
+POST   /auth/register              # Register new user
+POST   /auth/login                 # Login, returns JWT
+GET    /auth/current-user          # Get current user profile
+POST   /auth/refresh               # Refresh JWT token
 ```
 
 ### Wallet Operations
 
 ```
-GET    /api/wallet/balance         # Get wallet balance
-POST   /api/wallet/transfer        # Transfer funds
-GET    /api/wallet/transactions    # Get transaction history
+GET    /wallet/balance             # Get wallet balance
 ```
+
+### Transaction Operations (Offline-First Pattern)
+
+```
+POST   /wallet/transfer                    # Create pending transaction (offline-first)
+PUT    /wallet/transaction/:id/sync        # Sync pending transaction (execute transfer)
+POST   /wallet/transaction/:id/cancel      # Cancel pending transaction
+GET    /wallet/transactions                # Get transaction history with sync details
+```
+
+**Offline-First Architecture:**
+- **POST /wallet/transfer** - Creates transaction with "pending" status immediately
+- **PUT /wallet/transaction/:id/sync** - Executes the actual transfer when user syncs
+- **POST /wallet/transaction/:id/cancel** - Cancels pending transaction without executing
+
+For detailed API documentation, see [backend/API_DOCUMENTATION.md](backend/API_DOCUMENTATION.md).
 
 ## 🔌 Network Configuration
 
@@ -267,20 +280,21 @@ API_BASE_URL=http://<YOUR_MACHINE_IP>:8080
 ### 1. Register New Account
 
 ```bash
-POST http://10.0.2.2:8080/api/auth/register
+POST http://10.0.2.2:8080/auth/register
 Content-Type: application/json
 
 {
   "email": "test@example.com",
   "password": "password123",
-  "confirmPassword": "password123"
+  "firstName": "Test",
+  "lastName": "User"
 }
 ```
 
 ### 2. Login
 
 ```bash
-POST http://10.0.2.2:8080/api/auth/login
+POST http://10.0.2.2:8080/auth/login
 Content-Type: application/json
 
 {
@@ -292,14 +306,16 @@ Content-Type: application/json
 ### 3. Check Wallet Balance
 
 ```bash
-GET http://10.0.2.2:8080/api/wallet/balance
+GET http://10.0.2.2:8080/wallet/balance
 Authorization: Bearer <your_jwt_token>
 ```
 
-### 4. Transfer Funds
+### 4. Create Transfer (Offline-First)
+
+Creates a pending transaction immediately:
 
 ```bash
-POST http://10.0.2.2:8080/api/wallet/transfer
+POST http://10.0.2.2:8080/wallet/transfer
 Authorization: Bearer <your_jwt_token>
 Content-Type: application/json
 
@@ -308,6 +324,95 @@ Content-Type: application/json
   "amount": 100.00,
   "note": "Payment for services"
 }
+```
+
+Response (201):
+```json
+{
+  "message": "Transaction created with pending status",
+  "transaction": {
+    "id": "770e8400-e29b-41d4-a716-446655440000",
+    "amount": 100.00,
+    "recipientEmail": "recipient@example.com",
+    "note": "Payment for services",
+    "status": "pending",
+    "timestamp": "2026-02-12T10:30:00.000Z"
+  }
+}
+```
+
+### 5. Sync Transaction (Execute Transfer)
+
+Called when user syncs or automatically when online:
+
+```bash
+PUT http://10.0.2.2:8080/wallet/transaction/{transaction_id}/sync
+Authorization: Bearer <your_jwt_token>
+Content-Type: application/json
+
+{}
+```
+
+Response (200 if successful):
+```json
+{
+  "message": "Transaction synced successfully",
+  "transaction": {
+    "id": "770e8400-e29b-41d4-a716-446655440000",
+    "amount": 100.00,
+    "recipientEmail": "recipient@example.com",
+    "note": "Payment for services",
+    "status": "success",
+    "timestamp": "2026-02-12T10:30:00.000Z"
+  }
+}
+```
+
+### 6. Cancel Transaction (Optional)
+
+Cancel a pending transaction:
+
+```bash
+POST http://10.0.2.2:8080/wallet/transaction/{transaction_id}/cancel
+Authorization: Bearer <your_jwt_token>
+Content-Type: application/json
+
+{}
+```
+
+### 7. Get Transaction History
+
+View all transactions with sync details:
+
+```bash
+GET http://10.0.2.2:8080/wallet/transactions?limit=20&offset=0
+Authorization: Bearer <your_jwt_token>
+```
+
+Response:
+```json
+[
+  {
+    "id": "770e8400-e29b-41d4-a716-446655440000",
+    "amount": 100.00,
+    "recipientEmail": "recipient@example.com",
+    "note": "Payment for services",
+    "status": "pending",
+    "syncErrorMessage": null,
+    "syncedAt": null,
+    "timestamp": "2026-02-12T10:30:00.000Z"
+  },
+  {
+    "id": "880e8400-e29b-41d4-a716-446655440000",
+    "amount": 50.00,
+    "recipientEmail": "other@example.com",
+    "note": "Loan repayment",
+    "status": "success",
+    "syncErrorMessage": null,
+    "syncedAt": "2026-02-12T10:35:00.000Z",
+    "timestamp": "2026-02-12T10:35:00.000Z"
+  }
+]
 ```
 
 ## 🛠️ Troubleshooting
