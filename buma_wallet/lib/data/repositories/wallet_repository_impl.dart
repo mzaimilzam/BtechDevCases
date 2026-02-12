@@ -97,9 +97,11 @@ class WalletRepositoryImpl implements WalletRepository {
         timestamp: now,
       );
 
-      // Check connectivity and act accordingly
+      // OFFLINE-FIRST: Save to local database immediately
+      await _localDataSource.insertTransaction(transaction, userId);
+
+      // Try to sync to API
       if (await _isOnline()) {
-        // ONLINE: Try to execute immediately
         try {
           final remoteTransaction = await _remoteDataSource.transferFund(
             recipientEmail: recipientEmail,
@@ -107,32 +109,22 @@ class WalletRepositoryImpl implements WalletRepository {
             note: note,
           );
 
-          // If successful, cache the completed transaction
-          await _localDataSource.queueTransaction(
-            remoteTransaction,
-            userId,
+          // Update local transaction status to success
+          await _localDataSource.updateTransactionStatus(
+            transactionId,
+            'success',
+            syncedAt: DateTime.now(),
           );
 
           return Right(remoteTransaction);
-        } on Exception {
-          // If remote fails but we're online, queue for retry
-          final queuedTransaction = transaction.copyWith(
-            status: TransactionStatus.pendingSync,
-          );
-          await _localDataSource.queueTransaction(queuedTransaction, userId);
-
-          // Return pending status so UI knows it's queued
-          return Right(queuedTransaction);
+        } catch (e) {
+          // API call failed but transaction is saved locally as pending
+          // User can retry sync later
+          return Right(transaction); // Return pending transaction
         }
       } else {
-        // OFFLINE: Queue transaction for later sync
-        final queuedTransaction = transaction.copyWith(
-          status: TransactionStatus.pendingSync,
-        );
-        await _localDataSource.queueTransaction(queuedTransaction, userId);
-
-        // Return pending status - UI knows transaction is queued
-        return Right(queuedTransaction);
+        // Offline: Transaction saved locally as pending
+        return Right(transaction);
       }
     } on ValidationFailure catch (e) {
       return Left(e);
@@ -184,49 +176,98 @@ class WalletRepositoryImpl implements WalletRepository {
       return Left(UnknownFailure(e.toString()));
     }
   }
-
   @override
-  Future<Either<Failure, int>> syncPendingTransactions() async {
+  Future<Either<Failure, Transaction>> syncTransaction(
+    String transactionId,
+  ) async {
     try {
       final userId = await _tokenStorage.getCurrentUserId();
       if (userId == null) {
         return const Left(AuthFailure('User not authenticated'));
       }
 
-      // Get all pending transactions
+      // Get transaction from local DB
+      // NOTE: Need to add getTransaction method to LocalWalletDataSource
+      // For now, using the queue method
       final pendingTransactions =
-          await _localDataSource.getPendingSyncTransactions(userId);
+          await _localDataSource.getPendingTransactions(userId);
+      final transaction = pendingTransactions.firstWhere(
+        (t) => t.id == transactionId,
+        orElse: () => throw Exception('Transaction not found'),
+      );
 
-      int syncedCount = 0;
+      // Try to sync to API
+      try {
+        final remoteTransaction = await _remoteDataSource.transferFund(
+          recipientEmail: transaction.recipientEmail,
+          amount: transaction.amount,
+          note: transaction.note,
+        );
 
-      // Try to sync each pending transaction
-      for (final transaction in pendingTransactions) {
-        try {
-          final remoteTransaction = await _remoteDataSource.transferFund(
-            recipientEmail: transaction.recipientEmail,
-            amount: transaction.amount,
-            note: transaction.note,
-          );
+        // Update local transaction status to success
+        await _localDataSource.updateTransactionStatus(
+          transactionId,
+          'success',
+          syncedAt: DateTime.now(),
+        );
 
-          // Update status to match remote result
-          await _localDataSource.updateTransactionStatus(
-            transaction.id,
-            _statusToString(remoteTransaction.status),
-            syncedAt: DateTime.now(),
-          );
+        return Right(remoteTransaction);
+      } catch (e) {
+        // Update with error status
+        await _localDataSource.updateTransactionStatus(
+          transactionId,
+          'failed',
+          errorMessage: e.toString(),
+        );
 
-          syncedCount++;
-        } catch (e) {
-          // Update with error status
-          await _localDataSource.updateTransactionStatus(
-            transaction.id,
-            'failed',
-            errorMessage: e.toString(),
-          );
-        }
+        return Left(ServerFailure(
+          'Failed to sync transaction: ${e.toString()}',
+          null,
+        ));
+      }
+    } on AuthFailure catch (e) {
+      return Left(e);
+    } catch (e) {
+      return Left(UnknownFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Transaction>> cancelTransaction(
+    String transactionId,
+  ) async {
+    try {
+      final userId = await _tokenStorage.getCurrentUserId();
+      if (userId == null) {
+        return const Left(AuthFailure('User not authenticated'));
       }
 
-      return Right(syncedCount);
+      // Get transaction from local DB
+      final allTransactions =
+          await _localDataSource.getAllTransactions(userId);
+      final transaction = allTransactions.firstWhere(
+        (t) => t.id == transactionId,
+        orElse: () => throw Exception('Transaction not found'),
+      );
+
+      // Can only cancel pending transactions
+      if (transaction.status != TransactionStatus.pending) {
+        return Left(
+          ValidationFailure(
+            'Cannot cancel ${transaction.status.toString()} transaction',
+          ),
+        );
+      }
+
+      // Update local transaction status to cancelled
+      await _localDataSource.cancelTransaction(transactionId);
+
+      // Return cancelled transaction
+      final cancelledTransaction = transaction.copyWith(
+        status: TransactionStatus.cancelled,
+      );
+
+      return Right(cancelledTransaction);
     } on AuthFailure catch (e) {
       return Left(e);
     } catch (e) {
@@ -239,35 +280,5 @@ class WalletRepositoryImpl implements WalletRepository {
   Future<bool> _isOnline() async {
     // TODO: Implement actual connectivity check using connectivity_plus
     return true; // Placeholder
-  }
-
-  String _statusToString(TransactionStatus status) {
-    return switch (status) {
-      TransactionStatus.pending => 'pending',
-      TransactionStatus.success => 'success',
-      TransactionStatus.failed => 'failed',
-      TransactionStatus.pendingSync => 'pending_sync',
-    };
-  }
-}
-
-/// Extension for convenient copyWith on Transaction
-extension TransactionCopyWith on Transaction {
-  Transaction copyWith({
-    String? id,
-    String? recipientEmail,
-    double? amount,
-    String? note,
-    TransactionStatus? status,
-    DateTime? timestamp,
-  }) {
-    return Transaction(
-      id: id ?? this.id,
-      recipientEmail: recipientEmail ?? this.recipientEmail,
-      amount: amount ?? this.amount,
-      note: note ?? this.note,
-      status: status ?? this.status,
-      timestamp: timestamp ?? this.timestamp,
-    );
   }
 }

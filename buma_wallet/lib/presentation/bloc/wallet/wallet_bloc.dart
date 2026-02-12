@@ -16,6 +16,8 @@ class WalletBloc extends Bloc<WalletEvent, WalletState> {
     on<TransferRequested>(_onTransferRequested);
     on<GetBalanceRequested>(_onGetBalanceRequested);
     on<GetTransactionsRequested>(_onGetTransactionsRequested);
+    on<SyncTransactionRequested>(_onSyncTransactionRequested);
+    on<CancelTransactionRequested>(_onCancelTransactionRequested);
   }
 
   Future<void> _onTransferRequested(
@@ -61,6 +63,34 @@ class WalletBloc extends Bloc<WalletEvent, WalletState> {
     result.fold(
       (failure) => emit(WalletError(failure.message)),
       (transactions) => emit(TransactionsLoaded(transactions)),
+    );
+  }
+
+  Future<void> _onSyncTransactionRequested(
+    SyncTransactionRequested event,
+    Emitter<WalletState> emit,
+  ) async {
+    emit(const WalletLoading());
+
+    final result = await _walletRepository.syncTransaction(event.transactionId);
+
+    result.fold(
+      (failure) => emit(TransactionSyncFailure(failure.message)),
+      (transaction) => emit(TransactionSyncSuccess(transaction)),
+    );
+  }
+
+  Future<void> _onCancelTransactionRequested(
+    CancelTransactionRequested event,
+    Emitter<WalletState> emit,
+  ) async {
+    emit(const WalletLoading());
+
+    final result = await _walletRepository.cancelTransaction(event.transactionId);
+
+    result.fold(
+      (failure) => emit(TransactionCancelFailure(failure.message)),
+      (transaction) => emit(TransactionCancelSuccess(transaction)),
     );
   }
 }

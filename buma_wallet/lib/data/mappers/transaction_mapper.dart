@@ -12,6 +12,7 @@ extension TransactionResponseDtoX on TransactionResponseDto {
       note: note,
       status: _statusFromString(status),
       timestamp: DateTime.parse(timestamp),
+      syncErrorMessage: null,
     );
   }
 }
@@ -37,7 +38,7 @@ TransactionStatus _statusFromString(String value) {
     'pending' => TransactionStatus.pending,
     'success' => TransactionStatus.success,
     'failed' => TransactionStatus.failed,
-    'pending_sync' => TransactionStatus.pendingSync,
+    'cancelled' => TransactionStatus.cancelled,
     _ => TransactionStatus.failed,
   };
 }
@@ -48,6 +49,6 @@ String _statusToString(TransactionStatus status) {
     TransactionStatus.pending => 'pending',
     TransactionStatus.success => 'success',
     TransactionStatus.failed => 'failed',
-    TransactionStatus.pendingSync => 'pending_sync',
+    TransactionStatus.cancelled => 'cancelled',
   };
 }

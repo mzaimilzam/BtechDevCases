@@ -563,6 +563,504 @@ class WalletCacheTableCompanion extends UpdateCompanion<WalletCacheData> {
   }
 }
 
+class $TransactionsTableTable extends TransactionsTable
+    with TableInfo<$TransactionsTableTable, TransactionData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TransactionsTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+      'user_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _recipientEmailMeta =
+      const VerificationMeta('recipientEmail');
+  @override
+  late final GeneratedColumn<String> recipientEmail = GeneratedColumn<String>(
+      'recipient_email', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _amountMeta = const VerificationMeta('amount');
+  @override
+  late final GeneratedColumn<double> amount = GeneratedColumn<double>(
+      'amount', aliasedName, false,
+      type: DriftSqlType.double, requiredDuringInsert: true);
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+      'note', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+      'status', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _timestampMeta =
+      const VerificationMeta('timestamp');
+  @override
+  late final GeneratedColumn<DateTime> timestamp = GeneratedColumn<DateTime>(
+      'timestamp', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _syncedAtMeta =
+      const VerificationMeta('syncedAt');
+  @override
+  late final GeneratedColumn<DateTime> syncedAt = GeneratedColumn<DateTime>(
+      'synced_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _syncErrorMessageMeta =
+      const VerificationMeta('syncErrorMessage');
+  @override
+  late final GeneratedColumn<String> syncErrorMessage = GeneratedColumn<String>(
+      'sync_error_message', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        userId,
+        recipientEmail,
+        amount,
+        note,
+        status,
+        timestamp,
+        createdAt,
+        syncedAt,
+        syncErrorMessage
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'transactions_table';
+  @override
+  VerificationContext validateIntegrity(Insertable<TransactionData> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(_userIdMeta,
+          userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('recipient_email')) {
+      context.handle(
+          _recipientEmailMeta,
+          recipientEmail.isAcceptableOrUnknown(
+              data['recipient_email']!, _recipientEmailMeta));
+    } else if (isInserting) {
+      context.missing(_recipientEmailMeta);
+    }
+    if (data.containsKey('amount')) {
+      context.handle(_amountMeta,
+          amount.isAcceptableOrUnknown(data['amount']!, _amountMeta));
+    } else if (isInserting) {
+      context.missing(_amountMeta);
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+          _noteMeta, note.isAcceptableOrUnknown(data['note']!, _noteMeta));
+    } else if (isInserting) {
+      context.missing(_noteMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(_statusMeta,
+          status.isAcceptableOrUnknown(data['status']!, _statusMeta));
+    } else if (isInserting) {
+      context.missing(_statusMeta);
+    }
+    if (data.containsKey('timestamp')) {
+      context.handle(_timestampMeta,
+          timestamp.isAcceptableOrUnknown(data['timestamp']!, _timestampMeta));
+    } else if (isInserting) {
+      context.missing(_timestampMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('synced_at')) {
+      context.handle(_syncedAtMeta,
+          syncedAt.isAcceptableOrUnknown(data['synced_at']!, _syncedAtMeta));
+    }
+    if (data.containsKey('sync_error_message')) {
+      context.handle(
+          _syncErrorMessageMeta,
+          syncErrorMessage.isAcceptableOrUnknown(
+              data['sync_error_message']!, _syncErrorMessageMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+        {userId, id},
+      ];
+  @override
+  TransactionData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TransactionData(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      userId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
+      recipientEmail: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}recipient_email'])!,
+      amount: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}amount'])!,
+      note: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}note'])!,
+      status: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}status'])!,
+      timestamp: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}timestamp'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      syncedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}synced_at']),
+      syncErrorMessage: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}sync_error_message']),
+    );
+  }
+
+  @override
+  $TransactionsTableTable createAlias(String alias) {
+    return $TransactionsTableTable(attachedDatabase, alias);
+  }
+}
+
+class TransactionData extends DataClass implements Insertable<TransactionData> {
+  final String id;
+  final String userId;
+  final String recipientEmail;
+  final double amount;
+  final String note;
+  final String status;
+  final DateTime timestamp;
+  final DateTime createdAt;
+  final DateTime? syncedAt;
+  final String? syncErrorMessage;
+  const TransactionData(
+      {required this.id,
+      required this.userId,
+      required this.recipientEmail,
+      required this.amount,
+      required this.note,
+      required this.status,
+      required this.timestamp,
+      required this.createdAt,
+      this.syncedAt,
+      this.syncErrorMessage});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['user_id'] = Variable<String>(userId);
+    map['recipient_email'] = Variable<String>(recipientEmail);
+    map['amount'] = Variable<double>(amount);
+    map['note'] = Variable<String>(note);
+    map['status'] = Variable<String>(status);
+    map['timestamp'] = Variable<DateTime>(timestamp);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || syncedAt != null) {
+      map['synced_at'] = Variable<DateTime>(syncedAt);
+    }
+    if (!nullToAbsent || syncErrorMessage != null) {
+      map['sync_error_message'] = Variable<String>(syncErrorMessage);
+    }
+    return map;
+  }
+
+  TransactionsTableCompanion toCompanion(bool nullToAbsent) {
+    return TransactionsTableCompanion(
+      id: Value(id),
+      userId: Value(userId),
+      recipientEmail: Value(recipientEmail),
+      amount: Value(amount),
+      note: Value(note),
+      status: Value(status),
+      timestamp: Value(timestamp),
+      createdAt: Value(createdAt),
+      syncedAt: syncedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncedAt),
+      syncErrorMessage: syncErrorMessage == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncErrorMessage),
+    );
+  }
+
+  factory TransactionData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TransactionData(
+      id: serializer.fromJson<String>(json['id']),
+      userId: serializer.fromJson<String>(json['userId']),
+      recipientEmail: serializer.fromJson<String>(json['recipientEmail']),
+      amount: serializer.fromJson<double>(json['amount']),
+      note: serializer.fromJson<String>(json['note']),
+      status: serializer.fromJson<String>(json['status']),
+      timestamp: serializer.fromJson<DateTime>(json['timestamp']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      syncedAt: serializer.fromJson<DateTime?>(json['syncedAt']),
+      syncErrorMessage: serializer.fromJson<String?>(json['syncErrorMessage']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'userId': serializer.toJson<String>(userId),
+      'recipientEmail': serializer.toJson<String>(recipientEmail),
+      'amount': serializer.toJson<double>(amount),
+      'note': serializer.toJson<String>(note),
+      'status': serializer.toJson<String>(status),
+      'timestamp': serializer.toJson<DateTime>(timestamp),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'syncedAt': serializer.toJson<DateTime?>(syncedAt),
+      'syncErrorMessage': serializer.toJson<String?>(syncErrorMessage),
+    };
+  }
+
+  TransactionData copyWith(
+          {String? id,
+          String? userId,
+          String? recipientEmail,
+          double? amount,
+          String? note,
+          String? status,
+          DateTime? timestamp,
+          DateTime? createdAt,
+          Value<DateTime?> syncedAt = const Value.absent(),
+          Value<String?> syncErrorMessage = const Value.absent()}) =>
+      TransactionData(
+        id: id ?? this.id,
+        userId: userId ?? this.userId,
+        recipientEmail: recipientEmail ?? this.recipientEmail,
+        amount: amount ?? this.amount,
+        note: note ?? this.note,
+        status: status ?? this.status,
+        timestamp: timestamp ?? this.timestamp,
+        createdAt: createdAt ?? this.createdAt,
+        syncedAt: syncedAt.present ? syncedAt.value : this.syncedAt,
+        syncErrorMessage: syncErrorMessage.present
+            ? syncErrorMessage.value
+            : this.syncErrorMessage,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('TransactionData(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('recipientEmail: $recipientEmail, ')
+          ..write('amount: $amount, ')
+          ..write('note: $note, ')
+          ..write('status: $status, ')
+          ..write('timestamp: $timestamp, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('syncedAt: $syncedAt, ')
+          ..write('syncErrorMessage: $syncErrorMessage')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, userId, recipientEmail, amount, note,
+      status, timestamp, createdAt, syncedAt, syncErrorMessage);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TransactionData &&
+          other.id == this.id &&
+          other.userId == this.userId &&
+          other.recipientEmail == this.recipientEmail &&
+          other.amount == this.amount &&
+          other.note == this.note &&
+          other.status == this.status &&
+          other.timestamp == this.timestamp &&
+          other.createdAt == this.createdAt &&
+          other.syncedAt == this.syncedAt &&
+          other.syncErrorMessage == this.syncErrorMessage);
+}
+
+class TransactionsTableCompanion extends UpdateCompanion<TransactionData> {
+  final Value<String> id;
+  final Value<String> userId;
+  final Value<String> recipientEmail;
+  final Value<double> amount;
+  final Value<String> note;
+  final Value<String> status;
+  final Value<DateTime> timestamp;
+  final Value<DateTime> createdAt;
+  final Value<DateTime?> syncedAt;
+  final Value<String?> syncErrorMessage;
+  final Value<int> rowid;
+  const TransactionsTableCompanion({
+    this.id = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.recipientEmail = const Value.absent(),
+    this.amount = const Value.absent(),
+    this.note = const Value.absent(),
+    this.status = const Value.absent(),
+    this.timestamp = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.syncedAt = const Value.absent(),
+    this.syncErrorMessage = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TransactionsTableCompanion.insert({
+    required String id,
+    required String userId,
+    required String recipientEmail,
+    required double amount,
+    required String note,
+    required String status,
+    required DateTime timestamp,
+    required DateTime createdAt,
+    this.syncedAt = const Value.absent(),
+    this.syncErrorMessage = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        userId = Value(userId),
+        recipientEmail = Value(recipientEmail),
+        amount = Value(amount),
+        note = Value(note),
+        status = Value(status),
+        timestamp = Value(timestamp),
+        createdAt = Value(createdAt);
+  static Insertable<TransactionData> custom({
+    Expression<String>? id,
+    Expression<String>? userId,
+    Expression<String>? recipientEmail,
+    Expression<double>? amount,
+    Expression<String>? note,
+    Expression<String>? status,
+    Expression<DateTime>? timestamp,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? syncedAt,
+    Expression<String>? syncErrorMessage,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (userId != null) 'user_id': userId,
+      if (recipientEmail != null) 'recipient_email': recipientEmail,
+      if (amount != null) 'amount': amount,
+      if (note != null) 'note': note,
+      if (status != null) 'status': status,
+      if (timestamp != null) 'timestamp': timestamp,
+      if (createdAt != null) 'created_at': createdAt,
+      if (syncedAt != null) 'synced_at': syncedAt,
+      if (syncErrorMessage != null) 'sync_error_message': syncErrorMessage,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TransactionsTableCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? userId,
+      Value<String>? recipientEmail,
+      Value<double>? amount,
+      Value<String>? note,
+      Value<String>? status,
+      Value<DateTime>? timestamp,
+      Value<DateTime>? createdAt,
+      Value<DateTime?>? syncedAt,
+      Value<String?>? syncErrorMessage,
+      Value<int>? rowid}) {
+    return TransactionsTableCompanion(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      recipientEmail: recipientEmail ?? this.recipientEmail,
+      amount: amount ?? this.amount,
+      note: note ?? this.note,
+      status: status ?? this.status,
+      timestamp: timestamp ?? this.timestamp,
+      createdAt: createdAt ?? this.createdAt,
+      syncedAt: syncedAt ?? this.syncedAt,
+      syncErrorMessage: syncErrorMessage ?? this.syncErrorMessage,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (recipientEmail.present) {
+      map['recipient_email'] = Variable<String>(recipientEmail.value);
+    }
+    if (amount.present) {
+      map['amount'] = Variable<double>(amount.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (timestamp.present) {
+      map['timestamp'] = Variable<DateTime>(timestamp.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (syncedAt.present) {
+      map['synced_at'] = Variable<DateTime>(syncedAt.value);
+    }
+    if (syncErrorMessage.present) {
+      map['sync_error_message'] = Variable<String>(syncErrorMessage.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TransactionsTableCompanion(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('recipientEmail: $recipientEmail, ')
+          ..write('amount: $amount, ')
+          ..write('note: $note, ')
+          ..write('status: $status, ')
+          ..write('timestamp: $timestamp, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('syncedAt: $syncedAt, ')
+          ..write('syncErrorMessage: $syncErrorMessage, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $TransactionQueueTableTable extends TransactionQueueTable
     with TableInfo<$TransactionQueueTableTable, TransactionQueueData> {
   @override
@@ -1482,6 +1980,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $UserCacheTableTable userCacheTable = $UserCacheTableTable(this);
   late final $WalletCacheTableTable walletCacheTable =
       $WalletCacheTableTable(this);
+  late final $TransactionsTableTable transactionsTable =
+      $TransactionsTableTable(this);
   late final $TransactionQueueTableTable transactionQueueTable =
       $TransactionQueueTableTable(this);
   late final $TransactionHistoryTableTable transactionHistoryTable =
@@ -1493,6 +1993,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   List<DatabaseSchemaEntity> get allSchemaEntities => [
         userCacheTable,
         walletCacheTable,
+        transactionsTable,
         transactionQueueTable,
         transactionHistoryTable
       ];

@@ -23,8 +23,8 @@ abstract interface class WalletRepository {
   ///   - Returns Success status
   ///
   /// If offline:
-  ///   - Saves to TransactionQueueTable with pendingSync status
-  ///   - Returns OfflineSuccess (UI knows it's queued)
+  ///   - Saves to TransactionsTable with pending status
+  ///   - Returns Pending (UI knows it's queued)
   ///
   /// Parameters:
   ///   - recipientEmail: Recipient's email address
@@ -46,12 +46,25 @@ abstract interface class WalletRepository {
   /// Returns: Either<Failure, List<Transaction>> with history or failure
   Future<Either<Failure, List<Transaction>>> getTransactionHistory();
 
-  /// Sync pending transactions with the server.
+  /// Sync a specific pending transaction with the server.
   ///
-  /// Called when connectivity is restored.
-  /// Attempts to sync all pendingSync transactions.
-  /// Updates local DB with results.
+  /// Called when user manually syncs a transaction.
+  /// Updates local DB with result (success or error).
   ///
-  /// Returns: Either<Failure, int> with number of synced transactions
-  Future<Either<Failure, int>> syncPendingTransactions();
+  /// Parameters:
+  ///   - transactionId: Transaction ID to sync
+  ///
+  /// Returns: Either<Failure, Transaction> with updated transaction
+  Future<Either<Failure, Transaction>> syncTransaction(String transactionId);
+
+  /// Cancel a pending transaction.
+  ///
+  /// Changes transaction status from 'pending' to 'cancelled'.
+  /// Cancelled transactions are preserved in history but not synced.
+  ///
+  /// Parameters:
+  ///   - transactionId: Transaction ID to cancel
+  ///
+  /// Returns: Either<Failure, Transaction> with cancelled transaction
+  Future<Either<Failure, Transaction>> cancelTransaction(String transactionId);
 }

@@ -13,13 +13,16 @@ abstract interface class LocalWalletDataSource {
   /// Retrieve cached wallet by user ID
   Future<Wallet?> getWalletCacheByUserId(String userId);
 
-  /// Queue a transaction for later synchronization (offline case)
-  Future<void> queueTransaction(Transaction transaction, String userId);
+  /// Insert new transaction locally (offline-first)
+  Future<void> insertTransaction(Transaction transaction, String userId);
 
-  /// Get all pending transactions waiting to sync
-  Future<List<Transaction>> getPendingSyncTransactions(String userId);
+  /// Get all transactions for user (pending + completed)
+  Future<List<Transaction>> getAllTransactions(String userId);
 
-  /// Update transaction status and sync details
+  /// Get pending transactions only
+  Future<List<Transaction>> getPendingTransactions(String userId);
+
+  /// Update transaction status (success, failed, cancelled, etc.)
   Future<void> updateTransactionStatus(
     String transactionId,
     String status, {
@@ -27,11 +30,20 @@ abstract interface class LocalWalletDataSource {
     DateTime? syncedAt,
   });
 
-  /// Get transaction history (both pending and completed)
+  /// Cancel a transaction
+  Future<void> cancelTransaction(String transactionId);
+
+  /// Get transaction history (alias for getAllTransactions)
   Future<List<Transaction>> getTransactionHistory(String userId);
 
   /// Clear wallet and transaction caches
   Future<void> clearWalletData();
+
+  /// Queue a transaction for later synchronization (offline case) - LEGACY
+  Future<void> queueTransaction(Transaction transaction, String userId);
+
+  /// Get all pending transactions waiting to sync - LEGACY
+  Future<List<Transaction>> getPendingSyncTransactions(String userId);
 }
 
 /// Implementation of LocalWalletDataSource using Drift
@@ -68,15 +80,15 @@ class LocalWalletDataSourceImpl implements LocalWalletDataSource {
   }
 
   @override
-  Future<void> queueTransaction(Transaction transaction, String userId) async {
-    await _database.queueTransaction(
-      TransactionQueueData(
+  Future<void> insertTransaction(Transaction transaction, String userId) async {
+    await _database.insertTransaction(
+      TransactionData(
         id: transaction.id,
         userId: userId,
         recipientEmail: transaction.recipientEmail,
         amount: transaction.amount,
         note: transaction.note,
-        status: 'pending_sync',
+        status: _statusToString(transaction.status),
         timestamp: transaction.timestamp,
         createdAt: DateTime.now(),
       ),
@@ -84,10 +96,9 @@ class LocalWalletDataSourceImpl implements LocalWalletDataSource {
   }
 
   @override
-  Future<List<Transaction>> getPendingSyncTransactions(String userId) async {
-    final pendingTransactions =
-        await _database.getPendingSyncTransactions(userId);
-    return pendingTransactions
+  Future<List<Transaction>> getAllTransactions(String userId) async {
+    final transactions = await _database.getAllTransactionsByUserId(userId);
+    return transactions
         .map((data) => Transaction(
               id: data.id,
               recipientEmail: data.recipientEmail,
@@ -95,6 +106,23 @@ class LocalWalletDataSourceImpl implements LocalWalletDataSource {
               note: data.note,
               status: _statusFromString(data.status),
               timestamp: data.timestamp,
+              syncErrorMessage: data.syncErrorMessage,
+            ))
+        .toList();
+  }
+
+  @override
+  Future<List<Transaction>> getPendingTransactions(String userId) async {
+    final transactions = await _database.getPendingTransactionsByUserId(userId);
+    return transactions
+        .map((data) => Transaction(
+              id: data.id,
+              recipientEmail: data.recipientEmail,
+              amount: data.amount,
+              note: data.note,
+              status: _statusFromString(data.status),
+              timestamp: data.timestamp,
+              syncErrorMessage: data.syncErrorMessage,
             ))
         .toList();
   }
@@ -115,44 +143,35 @@ class LocalWalletDataSourceImpl implements LocalWalletDataSource {
   }
 
   @override
+  Future<void> cancelTransaction(String transactionId) async {
+    await _database.cancelTransaction(transactionId);
+  }
+
+  @override
   Future<List<Transaction>> getTransactionHistory(String userId) async {
-    // Get pending transactions
-    final pendingData = await _database.getPendingSyncTransactions(userId);
-    final pending = pendingData
-        .map((data) => Transaction(
-              id: data.id,
-              recipientEmail: data.recipientEmail,
-              amount: data.amount,
-              note: data.note,
-              status: _statusFromString(data.status),
-              timestamp: data.timestamp,
-            ))
-        .toList();
-
-    // Get completed transactions
-    final completedData = await _database.getTransactionHistoryByUserId(userId);
-    final completed = completedData
-        .map((data) => Transaction(
-              id: data.id,
-              recipientEmail: data.recipientEmail,
-              amount: data.amount,
-              note: data.note,
-              status: _statusFromString(data.status),
-              timestamp: data.timestamp,
-            ))
-        .toList();
-
-    // Combine and sort by timestamp
-    final all = [...pending, ...completed];
-    all.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-    return all;
+    return getAllTransactions(userId);
   }
 
   @override
   Future<void> clearWalletData() async {
     await _database.clearWalletCache();
+    await _database.clearAllTransactions();
     await _database.clearTransactionQueue();
     await _database.clearTransactionHistory();
+  }
+
+  // ============ LEGACY METHODS FOR BACKWARDS COMPATIBILITY ============
+
+  @override
+  Future<void> queueTransaction(Transaction transaction, String userId) async {
+    // Use new unified method
+    await insertTransaction(transaction, userId);
+  }
+
+  @override
+  Future<List<Transaction>> getPendingSyncTransactions(String userId) async {
+    // Use new unified method
+    return getPendingTransactions(userId);
   }
 }
 
@@ -172,12 +191,21 @@ Currency _currencyFromString(String value) {
   };
 }
 
+String _statusToString(TransactionStatus status) {
+  return switch (status) {
+    TransactionStatus.pending => 'pending',
+    TransactionStatus.success => 'success',
+    TransactionStatus.failed => 'failed',
+    TransactionStatus.cancelled => 'cancelled',
+  };
+}
+
 TransactionStatus _statusFromString(String value) {
   return switch (value.toLowerCase()) {
     'pending' => TransactionStatus.pending,
     'success' => TransactionStatus.success,
     'failed' => TransactionStatus.failed,
-    'pending_sync' => TransactionStatus.pendingSync,
-    _ => TransactionStatus.failed,
+    'cancelled' => TransactionStatus.cancelled,
+    _ => TransactionStatus.pending,
   };
 }

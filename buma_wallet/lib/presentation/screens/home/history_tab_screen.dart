@@ -27,8 +27,8 @@ class _HistoryTabScreenState extends State<HistoryTabScreen> {
         return 'Completed';
       case TransactionStatus.failed:
         return 'Failed';
-      case TransactionStatus.pendingSync:
-        return 'Syncing...';
+      case TransactionStatus.cancelled:
+        return 'Cancelled';
     }
   }
 
@@ -40,8 +40,8 @@ class _HistoryTabScreenState extends State<HistoryTabScreen> {
         return Colors.green;
       case TransactionStatus.failed:
         return Colors.red;
-      case TransactionStatus.pendingSync:
-        return Colors.blue;
+      case TransactionStatus.cancelled:
+        return Colors.grey;
     }
   }
 
@@ -58,6 +58,42 @@ class _HistoryTabScreenState extends State<HistoryTabScreen> {
                 backgroundColor: Colors.red,
               ),
             );
+          } else if (state is TransactionSyncSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Transaction synced successfully'),
+                backgroundColor: Colors.green,
+              ),
+            );
+            // Refresh transactions after sync
+            context.read<WalletBloc>().add(const GetTransactionsRequested());
+          } else if (state is TransactionSyncFailure) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Sync failed: ${state.message}'),
+                backgroundColor: Colors.red,
+              ),
+            );
+            // Refresh to show error message
+            context.read<WalletBloc>().add(const GetTransactionsRequested());
+          } else if (state is TransactionCancelSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Transaction cancelled successfully'),
+                backgroundColor: Colors.green,
+              ),
+            );
+            // Refresh transactions after cancel
+            context.read<WalletBloc>().add(const GetTransactionsRequested());
+          } else if (state is TransactionCancelFailure) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Cancel failed: ${state.message}'),
+                backgroundColor: Colors.red,
+              ),
+            );
+            // Refresh to show latest state
+            context.read<WalletBloc>().add(const GetTransactionsRequested());
           }
         },
         child: BlocBuilder<WalletBloc, WalletState>(
@@ -267,6 +303,61 @@ class _HistoryTabScreenState extends State<HistoryTabScreen> {
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       fontStyle: FontStyle.italic,
                     ),
+              ),
+            ],
+            // Show error message if sync failed
+            if (transaction.status == TransactionStatus.pending &&
+                transaction.syncErrorMessage != null &&
+                transaction.syncErrorMessage!.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  border: Border.all(color: Colors.red.shade200),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  'Sync failed: ${transaction.syncErrorMessage}',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Colors.red.shade700,
+                      ),
+                ),
+              ),
+            ],
+            // Show action buttons for pending transactions
+            if (transaction.status == TransactionStatus.pending) ...[
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      context.read<WalletBloc>().add(
+                            CancelTransactionRequested(
+                              transactionId: transaction.id,
+                            ),
+                          );
+                    },
+                    icon: const Icon(Icons.close),
+                    label: const Text('Cancel'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.red,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      context.read<WalletBloc>().add(
+                            SyncTransactionRequested(
+                              transactionId: transaction.id,
+                            ),
+                          );
+                    },
+                    icon: const Icon(Icons.sync),
+                    label: const Text('Sync'),
+                  ),
+                ],
               ),
             ],
           ],

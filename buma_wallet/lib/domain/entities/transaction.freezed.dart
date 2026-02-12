@@ -22,6 +22,7 @@ mixin _$Transaction {
   String get note => throw _privateConstructorUsedError;
   TransactionStatus get status => throw _privateConstructorUsedError;
   DateTime get timestamp => throw _privateConstructorUsedError;
+  String? get syncErrorMessage => throw _privateConstructorUsedError;
 
   @JsonKey(ignore: true)
   $TransactionCopyWith<Transaction> get copyWith =>
@@ -40,7 +41,8 @@ abstract class $TransactionCopyWith<$Res> {
       double amount,
       String note,
       TransactionStatus status,
-      DateTime timestamp});
+      DateTime timestamp,
+      String? syncErrorMessage});
 }
 
 /// @nodoc
@@ -62,6 +64,7 @@ class _$TransactionCopyWithImpl<$Res, $Val extends Transaction>
     Object? note = null,
     Object? status = null,
     Object? timestamp = null,
+    Object? syncErrorMessage = freezed,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -88,6 +91,10 @@ class _$TransactionCopyWithImpl<$Res, $Val extends Transaction>
           ? _value.timestamp
           : timestamp // ignore: cast_nullable_to_non_nullable
               as DateTime,
+      syncErrorMessage: freezed == syncErrorMessage
+          ? _value.syncErrorMessage
+          : syncErrorMessage // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -106,7 +113,8 @@ abstract class _$$TransactionImplCopyWith<$Res>
       double amount,
       String note,
       TransactionStatus status,
-      DateTime timestamp});
+      DateTime timestamp,
+      String? syncErrorMessage});
 }
 
 /// @nodoc
@@ -126,6 +134,7 @@ class __$$TransactionImplCopyWithImpl<$Res>
     Object? note = null,
     Object? status = null,
     Object? timestamp = null,
+    Object? syncErrorMessage = freezed,
   }) {
     return _then(_$TransactionImpl(
       id: null == id
@@ -152,6 +161,10 @@ class __$$TransactionImplCopyWithImpl<$Res>
           ? _value.timestamp
           : timestamp // ignore: cast_nullable_to_non_nullable
               as DateTime,
+      syncErrorMessage: freezed == syncErrorMessage
+          ? _value.syncErrorMessage
+          : syncErrorMessage // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -165,7 +178,8 @@ class _$TransactionImpl extends _Transaction {
       required this.amount,
       required this.note,
       required this.status,
-      required this.timestamp})
+      required this.timestamp,
+      this.syncErrorMessage})
       : super._();
 
   @override
@@ -180,10 +194,12 @@ class _$TransactionImpl extends _Transaction {
   final TransactionStatus status;
   @override
   final DateTime timestamp;
+  @override
+  final String? syncErrorMessage;
 
   @override
   String toString() {
-    return 'Transaction(id: $id, recipientEmail: $recipientEmail, amount: $amount, note: $note, status: $status, timestamp: $timestamp)';
+    return 'Transaction(id: $id, recipientEmail: $recipientEmail, amount: $amount, note: $note, status: $status, timestamp: $timestamp, syncErrorMessage: $syncErrorMessage)';
   }
 
   @override
@@ -198,12 +214,14 @@ class _$TransactionImpl extends _Transaction {
             (identical(other.note, note) || other.note == note) &&
             (identical(other.status, status) || other.status == status) &&
             (identical(other.timestamp, timestamp) ||
-                other.timestamp == timestamp));
+                other.timestamp == timestamp) &&
+            (identical(other.syncErrorMessage, syncErrorMessage) ||
+                other.syncErrorMessage == syncErrorMessage));
   }
 
   @override
-  int get hashCode => Object.hash(
-      runtimeType, id, recipientEmail, amount, note, status, timestamp);
+  int get hashCode => Object.hash(runtimeType, id, recipientEmail, amount, note,
+      status, timestamp, syncErrorMessage);
 
   @JsonKey(ignore: true)
   @override
@@ -219,7 +237,8 @@ abstract class _Transaction extends Transaction {
       required final double amount,
       required final String note,
       required final TransactionStatus status,
-      required final DateTime timestamp}) = _$TransactionImpl;
+      required final DateTime timestamp,
+      final String? syncErrorMessage}) = _$TransactionImpl;
   const _Transaction._() : super._();
 
   @override
@@ -234,6 +253,8 @@ abstract class _Transaction extends Transaction {
   TransactionStatus get status;
   @override
   DateTime get timestamp;
+  @override
+  String? get syncErrorMessage;
   @override
   @JsonKey(ignore: true)
   _$$TransactionImplCopyWith<_$TransactionImpl> get copyWith =>

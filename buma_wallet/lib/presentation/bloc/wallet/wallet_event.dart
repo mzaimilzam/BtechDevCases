@@ -29,3 +29,20 @@ class GetBalanceRequested extends WalletEvent {
 class GetTransactionsRequested extends WalletEvent {
   const GetTransactionsRequested();
 }
+class SyncTransactionRequested extends WalletEvent {
+  final String transactionId;
+
+  const SyncTransactionRequested({required this.transactionId});
+
+  @override
+  List<Object?> get props => [transactionId];
+}
+
+class CancelTransactionRequested extends WalletEvent {
+  final String transactionId;
+
+  const CancelTransactionRequested({required this.transactionId});
+
+  @override
+  List<Object?> get props => [transactionId];
+}

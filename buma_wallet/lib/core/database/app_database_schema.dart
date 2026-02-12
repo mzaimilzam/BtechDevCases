@@ -25,6 +25,32 @@ class WalletCacheTable extends Table {
   Set<Column> get primaryKey => {userId};
 }
 
+/// Table for storing all transactions (local queue + history)
+/// Offline-first pattern: insert immediately with 'pending' status,
+/// update status to 'success'/'failed'/'cancelled' after sync/action
+@DataClassName('TransactionData')
+class TransactionsTable extends Table {
+  TextColumn get id => text()();
+  TextColumn get userId => text()();
+  TextColumn get recipientEmail => text()();
+  RealColumn get amount => real()();
+  TextColumn get note => text()();
+  // Status: 'pending', 'success', 'failed', 'cancelled'
+  TextColumn get status => text()();
+  DateTimeColumn get timestamp => dateTime()();
+  DateTimeColumn get createdAt => dateTime()();
+  DateTimeColumn? get syncedAt => dateTime().nullable()();
+  TextColumn? get syncErrorMessage => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+
+  @override
+  List<Set<Column>> get uniqueKeys => [
+        {userId, id}
+      ];
+}
+
 /// Table for storing transactions pending synchronization
 /// These are transactions that were created while offline
 @DataClassName('TransactionQueueData')

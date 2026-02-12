@@ -51,6 +51,42 @@ class TransactionsLoaded extends WalletState {
   List<Object?> get props => [transactions];
 }
 
+class TransactionSyncSuccess extends WalletState {
+  final Transaction transaction;
+
+  const TransactionSyncSuccess(this.transaction);
+
+  @override
+  List<Object?> get props => [transaction];
+}
+
+class TransactionSyncFailure extends WalletState {
+  final String message;
+
+  const TransactionSyncFailure(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+
+class TransactionCancelSuccess extends WalletState {
+  final Transaction transaction;
+
+  const TransactionCancelSuccess(this.transaction);
+
+  @override
+  List<Object?> get props => [transaction];
+}
+
+class TransactionCancelFailure extends WalletState {
+  final String message;
+
+  const TransactionCancelFailure(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+
 class WalletError extends WalletState {
   final String message;
 
@@ -59,3 +95,4 @@ class WalletError extends WalletState {
   @override
   List<Object?> get props => [message];
 }
+
